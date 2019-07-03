@@ -19,8 +19,13 @@ class Calendar
       puts 'Invalid Value: Please enter a correct date next time.'
     else
       if @events.key?(:"#{day}")
-        @events[:"#{day}"] << Event.new(title, venue)
-        return true  
+        if !@events[:"#{day}"].include? "#{title}"
+          puts "This event already exists!"
+          return false
+        else
+          @events[:"#{day}"] << Event.new(title, venue)
+          return true  
+        end
       else
         @events.merge!("#{day}": [Event.new(title, venue)])
         return true
@@ -97,14 +102,12 @@ class Calendar
 
       Curses.stdscr.scrollok true
       Curses.init_screen
-
-      Curses.init_pair(1, Curses::COLOR_RED, Curses::COLOR_BLUE) #####
-      Curses.attrset(Curses.color_pair(2) | Curses::A_BOLD)
+      Curses.init_pair(1, Curses::COLOR_RED, Curses::COLOR_BLUE)
       
       begin
         col = 10
         Curses.attrset(Curses.color_pair(2) | Curses::A_STANDOUT)
-        Curses.setpos(0, 0)  #Curses.init_screen row 0, column 0
+        Curses.setpos(0, 0)  #row 0, column 0
         Curses.addstr(Date::MONTHNAMES[month].center(80).to_s)
 
         Curses.attrset(Curses.color_pair(2) | Curses::A_BOLD)
@@ -123,25 +126,22 @@ class Calendar
 
         Curses.attrset(Curses.color_pair(2) | Curses::A_NORMAL)
         day = date.strftime("%A")
-        totaldaysin = days_in_month(month)
+        total_days_in_month = days_in_month(month)
         col = 10
         datescursor = days_arr.index(day)
         startdate = 1
         rowcursor = 5
-        rowcursor_digits = 5
         for r in (5..10) do
           for c in (datescursor..6) do
             col_cursor = (c+1) * col 
             Curses.setpos(rowcursor, col_cursor)
-            if startdate <= totaldaysin
+            if startdate <= total_days_in_month
               Curses.addstr(startdate.to_s)
 
               #printing the events
               date = Date.parse("#{startdate}-#{month}-#{2019}")
               events_arr = @events[:"#{date}"]
-              #Curses.addstr(events_arr.to_s)
               unless events_arr.nil?
-                rowcursor_digits = rowcursor
                 events_arr.each_with_index do |e, index|
                     rowcursor = rowcursor + 1
                     Curses.setpos(rowcursor, col_cursor)
